@@ -10,10 +10,10 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      app:
+      web:
         condition: service_healthy
 
-  app:
+  web:
     image: ghcr.io/stavlobel/fav-pkmn:latest
     restart: unless-stopped
     healthcheck:

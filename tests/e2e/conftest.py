@@ -4,7 +4,8 @@ from playwright.sync_api import Page, Browser
 
 @pytest.fixture(scope="session")
 def base_url():
-    return "http://app:5173"
+    import os
+    return os.environ.get("BASE_URL", "http://web:5173")
 
 
 @pytest.fixture

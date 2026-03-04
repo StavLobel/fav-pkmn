@@ -125,7 +125,7 @@ ssh favpkmn "cd ~/fav-pkmn && docker compose -f docker-compose.prod.yml logs -f"
 ### Restart the app
 
 ```bash
-ssh favpkmn "cd ~/fav-pkmn && docker compose -f docker-compose.prod.yml restart app"
+ssh favpkmn "cd ~/fav-pkmn && docker compose -f docker-compose.prod.yml restart web"
 ```
 
 ### Restart everything
@@ -137,7 +137,7 @@ ssh favpkmn "cd ~/fav-pkmn && docker compose -f docker-compose.prod.yml down && 
 ### Manual deploy (pull latest image)
 
 ```bash
-ssh favpkmn "cd ~/fav-pkmn && docker compose -f docker-compose.prod.yml pull app && docker compose -f docker-compose.prod.yml up -d app"
+ssh favpkmn "cd ~/fav-pkmn && docker compose -f docker-compose.prod.yml pull web && docker compose -f docker-compose.prod.yml up -d web"
 ```
 
 ### Update Caddyfile or compose config

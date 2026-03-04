@@ -17,13 +17,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build dev image
-        run: docker compose build app
+        run: docker compose build web
 
       - name: Run unit tests
         run: docker compose --profile test run --rm test-unit
 
       - name: Start app for E2E
-        run: docker compose up -d app
+        run: docker compose up -d web
 
       - name: Wait for app to be ready
         run: |
@@ -35,7 +35,7 @@ jobs:
             echo "Waiting for Vite dev server... ($i/30)"
             sleep 2
           done
-          curl -sf http://localhost:5173 > /dev/null || (echo "App failed to start" && docker compose logs app && exit 1)
+          curl -sf http://localhost:5173 > /dev/null || (echo "App failed to start" && docker compose logs web && exit 1)
 
       - name: Run E2E tests
         run: docker compose --profile test run --rm test-e2e
@@ -78,5 +78,5 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd ~/fav-pkmn
-            docker compose -f docker-compose.prod.yml pull app
-            docker compose -f docker-compose.prod.yml up -d app
+            docker compose -f docker-compose.prod.yml pull web
+            docker compose -f docker-compose.prod.yml up -d web
