@@ -1,0 +1,44 @@
+---
+description: Enforce TDD red-green-refactor workflow for all feature development
+alwaysApply: true
+---
+
+# TDD Workflow
+
+Every feature follows the red-green-refactor cycle:
+
+1. **Red** -- Write a failing test first (Vitest unit test or pytest E2E test)
+2. **Green** -- Write the minimum code to make the test pass
+3. **Refactor** -- Clean up while keeping all tests green
+
+## Test Layer Reference
+
+- **Unit/Component tests**: Vitest + React Testing Library (JavaScript)
+- **E2E tests**: pytest + Playwright (Python)
+
+Test IDs and markers are defined in `docs/STP.md`. Use `@pytest.mark.<fr_id>` for E2E tests and descriptive test names matching the STP tables for unit tests.
+
+## Running Tests
+
+All tests run inside Docker containers:
+
+```bash
+# Unit tests
+docker compose --profile test run --rm test-unit
+
+# E2E tests
+docker compose --profile test run --rm test-e2e
+
+# Single SRS requirement
+docker compose --profile test run --rm test-e2e pytest -m fr5 -v
+
+# Watch mode during development
+docker compose --profile test run --rm test-unit npx vitest
+```
+
+## Rules
+
+- Never write implementation code without a corresponding failing test
+- Never skip writing a test because the feature "seems simple"
+- If a bug is found, write a failing test that reproduces it before fixing
+- Keep tests focused: one assertion per test when practical

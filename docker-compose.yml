@@ -1,0 +1,35 @@
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+
+  test-unit:
+    build:
+      context: .
+      target: dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx vitest run
+    profiles: ["test"]
+
+  test-e2e:
+    build:
+      context: ./tests
+      dockerfile: Dockerfile.e2e
+    depends_on:
+      - app
+    environment:
+      - BASE_URL=http://app:5173
+    volumes:
+      - ./tests:/tests
+      - ./test-results:/test-results
+    profiles: ["test"]

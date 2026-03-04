@@ -1,0 +1,41 @@
+---
+description: pytest and Playwright E2E test conventions
+globs: tests/**/*.py
+alwaysApply: false
+---
+
+# pytest E2E Conventions
+
+## Markers
+
+Every test must have at least one `@pytest.mark.<fr_id>` marker linking it to an SRS requirement (FR-1 through FR-25). Non-functional tests use `nfr_perf` or `nfr_compat`.
+
+```python
+@pytest.mark.fr5
+class TestDiscoveryDisplay:
+    def test_shows_four_pokemon(self, clean_page):
+        """FR-5: Ranking screen displays exactly 4 Pokemon cards."""
+```
+
+## Test Structure
+
+- Class-based grouping: one test class per logical feature area
+- Docstrings on every test method referencing the SRS requirement ID
+- Use fixtures from `conftest.py` (`clean_page`, `seeded_page`, etc.)
+
+## Fixtures
+
+- `clean_page` -- fresh browser page with cleared LocalStorage
+- `seeded_page` -- page with pre-seeded LocalStorage (Gen 1 completed)
+- `all_gens_completed_page` -- page with all 9 generations completed
+- `base_url` -- the app URL (session-scoped)
+
+## File Naming
+
+- `test_home_page.py` -- FR-1 to FR-4
+- `test_phase_a.py` -- FR-5 to FR-10
+- `test_phase_b.py` -- FR-11 to FR-16
+- `test_championship.py` -- FR-17 to FR-21
+- `test_persistence.py` -- FR-22 to FR-25
+- `test_performance.py` -- NFR performance
+- `test_responsive.py` -- NFR compatibility
