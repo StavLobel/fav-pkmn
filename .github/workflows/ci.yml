@@ -22,11 +22,27 @@ jobs:
       - name: Run unit tests
         run: docker compose --profile test run --rm test-unit
 
-      - name: Run E2E tests
+      - name: Start app for E2E
+        run: docker compose up -d app
+
+      - name: Wait for app to be ready
         run: |
-          docker compose up -d app
-          docker compose --profile test run --rm test-e2e
-          docker compose down
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5173 > /dev/null 2>&1; then
+              echo "App is ready"
+              break
+            fi
+            echo "Waiting for Vite dev server... ($i/30)"
+            sleep 2
+          done
+          curl -sf http://localhost:5173 > /dev/null || (echo "App failed to start" && docker compose logs app && exit 1)
+
+      - name: Run E2E tests
+        run: docker compose --profile test run --rm test-e2e
+
+      - name: Stop app
+        if: always()
+        run: docker compose down
 
   build-and-deploy:
     name: Build & Deploy
