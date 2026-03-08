@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-python:
+    name: Lint Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install ruff
+
+      - name: Check formatting
+        run: ruff format --check backend/
+
+      - name: Check linting rules
+        run: ruff check backend/
+
+  lint-dart:
+    name: Lint Dart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Analyze Flutter code
+        run: |
+          docker build --target dev -t fav-pkmn-app ./frontend
+          docker run --rm fav-pkmn-app flutter analyze --no-fatal-infos
+
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build dev images
+        run: docker compose build
+
+      - name: Build prod images
+        run: docker compose -f docker-compose.prod.yml build
+
+  test-frontend:
+    name: Frontend Widget Tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Flutter widget tests
+        run: docker compose --profile test run --rm test-unit
+
+  test-e2e:
+    name: E2E & API Tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start all services
+        run: docker compose up -d db api app
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for API..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8000/api/health > /dev/null 2>&1; then
+              echo "API ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+          echo "Waiting for frontend..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:5173 > /dev/null 2>&1; then
+              echo "Frontend ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run full test suite
+        run: docker compose --profile test run --rm test-e2e pytest -v
+
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: tests/traces/
+          retention-days: 7
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v

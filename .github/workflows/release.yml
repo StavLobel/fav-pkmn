@@ -1,0 +1,126 @@
+name: Release & Deploy Production
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  test:
+    name: Pre-release Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build all images
+        run: docker compose build
+
+      - name: Run frontend widget tests
+        run: docker compose --profile test run --rm test-unit
+
+      - name: Start services for E2E
+        run: |
+          docker compose up -d db api app
+          sleep 15
+
+      - name: Run full E2E test suite
+        run: docker compose --profile test run --rm test-e2e pytest -v
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  create-release:
+    name: Create GitHub Release
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            CHANGES=$(git log --pretty=format:"- %s (%h)" HEAD)
+          else
+            CHANGES=$(git log --pretty=format:"- %s (%h)" ${PREV_TAG}..HEAD)
+          fi
+          {
+            echo "changes<<EOF"
+            echo "$CHANGES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            ## Changes
+
+            ${{ steps.changelog.outputs.changes }}
+
+  deploy-prod:
+    name: Deploy to Production
+    needs: create-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync files to VPS
+        run: |
+          rsync -avz --delete \
+            --exclude '.git' \
+            --exclude '.cursor' \
+            --exclude '__pycache__' \
+            --exclude '.dart_tool' \
+            --exclude 'build' \
+            --exclude 'tests' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/fav-pkmn/
+
+      - name: Build and start production containers
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "cd ~/fav-pkmn && docker compose -f docker-compose.prod.yml up --build -d"
+
+  health-check:
+    name: Production Health Check
+    needs: deploy-prod
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Wait for services to stabilize
+        run: sleep 30
+
+      - name: Check API health
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.VPS_HOST }}/api/health)
+          if [ "$STATUS" != "200" ]; then
+            echo "Production API health check failed with status $STATUS"
+            exit 1
+          fi
+          echo "Production API health check passed"
+
+      - name: Check frontend
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.VPS_HOST }}/)
+          if [ "$STATUS" != "200" ]; then
+            echo "Production frontend check failed with status $STATUS"
+            exit 1
+          fi
+          echo "Production frontend check passed"

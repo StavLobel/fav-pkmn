@@ -1,0 +1,14 @@
+# Default owners for all files
+*                       @slobel
+
+# Backend-specific ownership
+/backend/               @slobel
+/tests/                 @slobel
+
+# Frontend-specific ownership
+/frontend/              @slobel
+
+# Infrastructure and CI/CD
+/docker-compose*.yml    @slobel
+/.github/               @slobel
+/nginx/                 @slobel
