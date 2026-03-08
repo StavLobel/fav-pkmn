@@ -50,35 +50,29 @@ class VotingView extends StatelessWidget {
             if (isWide) {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: _interleaveVsBadges(
-                  cards
-                      .map((card) => Expanded(
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8),
-                              child: card,
-                            ),
-                          ))
-                      .toList(),
-                  theme,
-                ),
+                children: cards
+                    .map((card) => Expanded(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8),
+                            child: card,
+                          ),
+                        ))
+                    .toList(),
               );
             }
             return Wrap(
               alignment: WrapAlignment.center,
               spacing: 16,
               runSpacing: 8,
-              children: _interleaveVsBadges(
-                cards
-                    .map((card) => SizedBox(
-                          width: constraints.maxWidth > 500
-                              ? (constraints.maxWidth - 64) / 2
-                              : double.infinity,
-                          child: card,
-                        ))
-                    .toList(),
-                theme,
-              ),
+              children: cards
+                  .map((card) => SizedBox(
+                        width: constraints.maxWidth > 500
+                            ? (constraints.maxWidth - 64) / 2
+                            : double.infinity,
+                        child: card,
+                      ))
+                  .toList(),
             );
           },
         ),
@@ -87,39 +81,6 @@ class VotingView extends StatelessWidget {
           const CircularProgressIndicator(),
         ],
       ],
-    );
-  }
-
-  List<Widget> _interleaveVsBadges(List<Widget> cards, ThemeData theme) {
-    if (cards.length <= 1) return cards;
-    final result = <Widget>[];
-    for (var i = 0; i < cards.length; i++) {
-      result.add(cards[i]);
-      if (i < cards.length - 1) {
-        result.add(_vsBadge(theme));
-      }
-    }
-    return result;
-  }
-
-  Widget _vsBadge(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: theme.colorScheme.tertiaryContainer,
-        ),
-        child: Text(
-          'VS',
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-            color: theme.colorScheme.onTertiaryContainer,
-            letterSpacing: 1,
-          ),
-        ),
-      ),
     );
   }
 }

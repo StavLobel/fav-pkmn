@@ -3,20 +3,6 @@ import re
 import pytest
 
 
-@pytest.mark.regression
-@pytest.mark.e2e
-@pytest.mark.matchup
-class TestVsBadgeE2E:
-    """VS badge should appear between Pokemon cards on the voting screen."""
-
-    def test_vs_badge_visible_on_voting_screen(self, clean_page):
-        """The VS badge appears between Pokemon cards."""
-        clean_page.wait_for_selector("text=PokePick", timeout=15000)
-        clean_page.wait_for_selector("img", timeout=15000)
-
-        vs_badge = clean_page.query_selector("text=VS")
-        assert vs_badge is not None, "VS badge should be visible between Pokemon cards"
-
 
 @pytest.mark.regression
 @pytest.mark.e2e
