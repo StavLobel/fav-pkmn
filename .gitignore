@@ -1,0 +1,27 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.egg-info/
+dist/
+build/
+
+# Flutter
+frontend/.dart_tool/
+frontend/.packages
+frontend/build/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db

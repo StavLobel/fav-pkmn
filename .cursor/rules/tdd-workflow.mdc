@@ -1,0 +1,43 @@
+---
+description: TDD workflow for Daily Starter
+globs:
+alwaysApply: true
+---
+
+# TDD Workflow
+
+Every feature follows the red-green-refactor cycle:
+
+1. **Red** -- Write a failing test first (Flutter widget test, pytest backend test, or pytest E2E test)
+2. **Green** -- Write the minimum code to make the test pass
+3. **Refactor** -- Clean up while keeping all tests green
+
+## Test Layer Reference
+
+- **Backend unit tests**: pytest + httpx AsyncClient (Python)
+- **Frontend widget tests**: Flutter test framework (Dart)
+- **E2E tests**: pytest + Playwright (Python)
+
+Test IDs and markers are defined in `docs/STP.md`. Use `@pytest.mark.<fr_id>` for E2E tests and descriptive test names matching the STP tables for unit tests.
+
+## Running Tests
+
+All tests run inside Docker containers:
+
+```bash
+# Frontend widget tests
+docker compose --profile test run --rm test-unit
+
+# E2E tests
+docker compose --profile test run --rm test-e2e
+
+# Single SRS requirement
+docker compose --profile test run --rm test-e2e pytest -m fr5 -v
+```
+
+## Rules
+
+- Never write implementation code without a corresponding failing test
+- Never skip writing a test because the feature "seems simple"
+- If a bug is found, write a failing test that reproduces it before fixing
+- Keep tests focused: one assertion per test when practical

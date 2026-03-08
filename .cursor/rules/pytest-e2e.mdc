@@ -1,0 +1,40 @@
+---
+description: pytest and Playwright E2E test conventions for Daily Starter
+globs: tests/**/*.py
+alwaysApply: false
+---
+
+# pytest E2E Conventions
+
+## Markers
+
+Every test must have at least one `@pytest.mark.<fr_id>` marker linking it to an SRS requirement (FR-1 through FR-35). Non-functional tests use `nfr_perf` or `nfr_compat`.
+
+```python
+@pytest.mark.fr8
+class TestDailyChallengeDisplay:
+    def test_shows_three_pokemon(self, clean_page):
+        """FR-8: Daily challenge screen displays exactly 3 Pokemon cards."""
+```
+
+## Test Structure
+
+- Class-based grouping: one test class per logical feature area
+- Docstrings on every test method referencing the SRS requirement ID
+- Use fixtures from `conftest.py` (`clean_page`, `seeded_page`, etc.)
+
+## Fixtures
+
+- `clean_page` -- fresh browser page with cleared cookies
+- `seeded_page` -- page with a voter_token cookie that has already voted today
+- `base_url` -- the app URL (session-scoped)
+- `api_url` -- the API URL (session-scoped)
+
+## File Naming
+
+- `test_daily_challenge.py` -- FR-8 to FR-11 (display)
+- `test_voting.py` -- FR-12 to FR-18 (voting flow)
+- `test_identity.py` -- FR-19 to FR-22 (anonymous identity)
+- `test_results.py` -- FR-23 to FR-28 (results display)
+- `test_daily_reset.py` -- FR-29 to FR-32 (daily reset)
+- `test_history.py` -- FR-33 to FR-35 (history)

@@ -1,0 +1,67 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dailystarter
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      APP_DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/dailystarter
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build:
+      context: ./frontend
+      target: dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/lib:/app/lib
+      - ./frontend/test:/app/test
+      - ./frontend/pubspec.yaml:/app/pubspec.yaml
+    depends_on:
+      - api
+
+  test-unit:
+    build:
+      context: ./frontend
+      target: dev
+    command: flutter test
+    volumes:
+      - ./frontend/lib:/app/lib
+      - ./frontend/test:/app/test
+    profiles:
+      - test
+
+  test-e2e:
+    build:
+      context: ./tests
+    environment:
+      BASE_URL: http://app:5173
+      API_URL: http://api:8000
+    depends_on:
+      - app
+      - api
+    profiles:
+      - test
+
+volumes:
+  pgdata:

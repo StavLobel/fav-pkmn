@@ -1,0 +1,59 @@
+---
+description: Docker workflow for Daily Starter (Flutter + FastAPI + PostgreSQL)
+globs:
+alwaysApply: true
+---
+
+# Docker Workflow
+
+## Core Principle
+
+All commands run inside Docker containers. Never install project dependencies (Flutter SDK, Python, pip packages) directly on the host machine.
+
+## Development
+
+```bash
+# Start all services (db, api, app) with hot-reload
+docker compose up
+
+# Frontend at http://localhost:5173
+# API at http://localhost:8000
+```
+
+## Testing
+
+```bash
+# Unit tests (Flutter test)
+docker compose --profile test run --rm test-unit
+
+# E2E tests (pytest + Playwright)
+docker compose --profile test run --rm test-e2e
+
+# Run tests for a specific SRS requirement
+docker compose --profile test run --rm test-e2e pytest -m fr1 -v
+```
+
+## Database Migrations
+
+```bash
+# Generate a new migration after model changes
+docker compose exec api alembic revision --autogenerate -m "description"
+
+# Apply migrations
+docker compose exec api alembic upgrade head
+```
+
+## Production Build
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+# Access at http://localhost:80
+```
+
+## Key Details
+
+- The `api` service uses a bind-mount for source files so uvicorn reload works
+- The `app` service bind-mounts `lib/` and `test/` for Flutter hot-reload
+- The `test-e2e` service depends on `app` and `api`, connecting via the Docker network
+- Use `docker compose down` to stop all services
+- Use `docker compose down -v` to also remove the database volume

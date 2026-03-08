@@ -1,0 +1,51 @@
+---
+description: Flutter and Dart conventions for the Daily Starter app
+globs: frontend/lib/**/*.dart
+alwaysApply: false
+---
+
+# Flutter Conventions
+
+## Widgets
+
+- Use `StatelessWidget` or `StatefulWidget` -- no raw functions returning widgets
+- Named constructors with `const` when possible
+- Props passed via constructor parameters with `required` keyword
+
+```dart
+class PokemonCard extends StatelessWidget {
+  const PokemonCard({
+    super.key,
+    required this.name,
+    required this.spriteUrl,
+    required this.onTap,
+  });
+
+  final String name;
+  final String spriteUrl;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) { ... }
+}
+```
+
+## File Organization
+
+- Reusable widgets in `lib/widgets/`
+- Route-level screens in `lib/screens/`
+- Data models in `lib/models/`
+- API and service classes in `lib/services/`
+- State management in `lib/providers/`
+
+## State Management
+
+- Use Provider (`ChangeNotifierProvider`) for app-level state
+- Keep providers in `lib/providers/`
+- Call `notifyListeners()` after state mutations
+
+## Styling
+
+- Use Material 3 theming (`ThemeData` with `ColorScheme.fromSeed`)
+- Prefer theme colors over hardcoded values
+- Mobile-first responsive design
