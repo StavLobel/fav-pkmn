@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     max_pokemon_id: int = 1025
     app_timezone: str = "UTC"
     cookie_secure: bool = False
+    testing: bool = False
 
     model_config = {"env_prefix": "APP_"}
 

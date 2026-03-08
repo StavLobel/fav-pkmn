@@ -64,3 +64,10 @@ jobs:
             exit 1
           fi
           echo "Frontend health check passed"
+
+  sanity-check:
+    name: Post-deploy Sanity
+    needs: deploy
+    uses: ./.github/workflows/test-suites.yml
+    with:
+      run-sanity: true

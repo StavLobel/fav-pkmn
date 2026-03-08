@@ -1,0 +1,449 @@
+name: Test Suites
+
+on:
+  workflow_call:
+    inputs:
+      run-sanity:
+        type: boolean
+        default: false
+      run-api:
+        type: boolean
+        default: false
+      run-e2e:
+        type: boolean
+        default: false
+      run-security:
+        type: boolean
+        default: false
+      run-regression:
+        type: boolean
+        default: false
+      run-performance:
+        type: boolean
+        default: false
+      run-matchup:
+        type: boolean
+        default: false
+      run-voting:
+        type: boolean
+        default: false
+      run-identity:
+        type: boolean
+        default: false
+      run-results:
+        type: boolean
+        default: false
+      run-history:
+        type: boolean
+        default: false
+      run-daily-reset:
+        type: boolean
+        default: false
+
+  workflow_dispatch:
+    inputs:
+      run-sanity:
+        type: boolean
+        default: false
+        description: "Sanity — critical-path validation (< 30s)"
+      run-api:
+        type: boolean
+        default: false
+        description: "API — httpx tests, no browser"
+      run-e2e:
+        type: boolean
+        default: false
+        description: "E2E — Playwright browser tests"
+      run-security:
+        type: boolean
+        default: false
+        description: "Security — cookie & input validation"
+      run-regression:
+        type: boolean
+        default: false
+        description: "Regression — full test suite"
+      run-performance:
+        type: boolean
+        default: false
+        description: "Performance — response-time benchmarks (nfr_perf)"
+      run-matchup:
+        type: boolean
+        default: false
+        description: "Feature: matchup generation"
+      run-voting:
+        type: boolean
+        default: false
+        description: "Feature: vote submission"
+      run-identity:
+        type: boolean
+        default: false
+        description: "Feature: anonymous identity"
+      run-results:
+        type: boolean
+        default: false
+        description: "Feature: results display"
+      run-history:
+        type: boolean
+        default: false
+        description: "Feature: historical matchups"
+      run-daily-reset:
+        type: boolean
+        default: false
+        description: "Feature: daily reset"
+
+jobs:
+  # ──────────────────────────────────────────────────────
+  #  Suite Jobs
+  # ──────────────────────────────────────────────────────
+
+  sanity:
+    name: "Suite: Sanity"
+    if: ${{ inputs.run-sanity }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api app
+
+      - name: Wait for services
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            sleep 1
+          done
+
+      - name: Run sanity tests
+        run: docker compose --profile test run --rm test-e2e pytest -m sanity -v
+
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traces-sanity
+          path: tests/traces/
+          retention-days: 7
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  api:
+    name: "Suite: API"
+    if: ${{ inputs.run-api }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+
+      - name: Run API tests
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m api -v
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  e2e:
+    name: "Suite: E2E"
+    if: ${{ inputs.run-e2e }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api app
+
+      - name: Wait for services
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            sleep 1
+          done
+
+      - name: Run E2E tests
+        run: docker compose --profile test run --rm test-e2e pytest -m e2e -v
+
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traces-e2e
+          path: tests/traces/
+          retention-days: 7
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  security:
+    name: "Suite: Security"
+    if: ${{ inputs.run-security }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+
+      - name: Run security tests
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m security -v
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  regression:
+    name: "Suite: Regression"
+    if: ${{ inputs.run-regression }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api app
+
+      - name: Wait for services
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            sleep 1
+          done
+
+      - name: Run regression tests
+        run: docker compose --profile test run --rm test-e2e pytest -m regression -v --cov --cov-report=term-missing
+
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traces-regression
+          path: tests/traces/
+          retention-days: 7
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  performance:
+    name: "Suite: Performance"
+    if: ${{ inputs.run-performance }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+
+      - name: Run performance tests
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m nfr_perf -v
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  # ──────────────────────────────────────────────────────
+  #  Feature Jobs
+  # ──────────────────────────────────────────────────────
+
+  matchup:
+    name: "Feature: Matchup"
+    if: ${{ inputs.run-matchup }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api app
+
+      - name: Wait for services
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            sleep 1
+          done
+
+      - name: Run matchup tests
+        run: docker compose --profile test run --rm test-e2e pytest -m matchup -v
+
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traces-matchup
+          path: tests/traces/
+          retention-days: 7
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  voting:
+    name: "Feature: Voting"
+    if: ${{ inputs.run-voting }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+
+      - name: Run voting tests
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m voting -v
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  identity:
+    name: "Feature: Identity"
+    if: ${{ inputs.run-identity }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+
+      - name: Run identity tests
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m identity -v
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  results:
+    name: "Feature: Results"
+    if: ${{ inputs.run-results }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+
+      - name: Run results tests
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m results -v
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  history:
+    name: "Feature: History"
+    if: ${{ inputs.run-history }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+
+      - name: Run history tests
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m history -v
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  daily-reset:
+    name: "Feature: Daily Reset"
+    if: ${{ inputs.run-daily-reset }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d db api
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/api/health > /dev/null 2>&1 && echo "API ready" && break
+            sleep 1
+          done
+
+      - name: Run daily reset tests
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m daily_reset -v
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v

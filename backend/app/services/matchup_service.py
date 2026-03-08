@@ -14,9 +14,12 @@ def _today() -> datetime.date:
     return datetime.datetime.now(datetime.timezone.utc).date()
 
 
-async def get_or_create_today(db: AsyncSession) -> DailyMatchup:
+async def get_or_create_today(
+    db: AsyncSession,
+    override_date: datetime.date | None = None,
+) -> DailyMatchup:
     """Return today's matchup, creating it lazily if it doesn't exist."""
-    today = _today()
+    today = override_date or _today()
     matchup = await _get_by_date(db, today)
     if matchup:
         return matchup

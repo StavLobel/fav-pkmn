@@ -62,46 +62,24 @@ jobs:
       - name: Run Flutter widget tests
         run: docker compose --profile test run --rm test-unit
 
-  test-e2e:
-    name: E2E & API Tests
+  test-sanity:
+    name: Sanity Gate
     needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    uses: ./.github/workflows/test-suites.yml
+    with:
+      run-sanity: true
 
-      - name: Start all services
-        run: docker compose up -d db api app
+  test-api-security:
+    name: API & Security
+    needs: test-sanity
+    uses: ./.github/workflows/test-suites.yml
+    with:
+      run-api: true
+      run-security: true
 
-      - name: Wait for services to be ready
-        run: |
-          echo "Waiting for API..."
-          for i in $(seq 1 30); do
-            if curl -sf http://localhost:8000/api/health > /dev/null 2>&1; then
-              echo "API ready after ${i}s"
-              break
-            fi
-            sleep 1
-          done
-          echo "Waiting for frontend..."
-          for i in $(seq 1 60); do
-            if curl -sf http://localhost:5173 > /dev/null 2>&1; then
-              echo "Frontend ready after ${i}s"
-              break
-            fi
-            sleep 1
-          done
-
-      - name: Run full test suite
-        run: docker compose --profile test run --rm test-e2e pytest -v
-
-      - name: Upload Playwright traces
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-traces
-          path: tests/traces/
-          retention-days: 7
-
-      - name: Teardown
-        if: always()
-        run: docker compose down -v
+  test-e2e:
+    name: E2E Browser Tests
+    needs: test-api-security
+    uses: ./.github/workflows/test-suites.yml
+    with:
+      run-e2e: true

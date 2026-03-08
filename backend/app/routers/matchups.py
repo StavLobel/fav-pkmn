@@ -1,9 +1,11 @@
+import datetime
 import uuid
 
 from fastapi import APIRouter, Cookie, Depends, Query, Response
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db
 from app.models import DailyMatchup, PokemonCache, Vote
 from app.schemas import HistoryEntry, MatchupOut, PokemonOut
@@ -17,6 +19,7 @@ async def get_today_matchup(
     response: Response,
     db: AsyncSession = Depends(get_db),
     voter_token: str | None = Cookie(default=None),
+    _test_date: str | None = Query(default=None),
 ):
     token = uuid.UUID(voter_token) if voter_token else uuid.uuid4()
 
@@ -29,7 +32,11 @@ async def get_today_matchup(
             max_age=365 * 24 * 60 * 60,
         )
 
-    matchup = await matchup_service.get_or_create_today(db)
+    override_date = None
+    if _test_date and settings.testing:
+        override_date = datetime.date.fromisoformat(_test_date)
+
+    matchup = await matchup_service.get_or_create_today(db, override_date=override_date)
     pokemon_list = await matchup_service.get_matchup_with_pokemon(db, matchup)
 
     pokemon_out = [

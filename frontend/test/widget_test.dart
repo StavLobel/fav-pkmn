@@ -4,6 +4,6 @@ import 'package:daily_starter/main.dart';
 void main() {
   testWidgets('App renders without crashing', (tester) async {
     await tester.pumpWidget(const DailyStarterApp());
-    expect(find.text('Daily Challenge'), findsOneWidget);
+    expect(find.text('Daily Starter'), findsOneWidget);
   });
 }

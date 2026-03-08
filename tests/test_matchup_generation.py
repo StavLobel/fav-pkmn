@@ -2,12 +2,16 @@ import pytest
 import httpx
 
 
+@pytest.mark.regression
+@pytest.mark.api
+@pytest.mark.matchup
 @pytest.mark.fr1
 @pytest.mark.fr2
 @pytest.mark.fr5
 class TestMatchupGeneration:
     """FR-1 to FR-5: Daily matchup generation."""
 
+    @pytest.mark.sanity
     def test_matchup_contains_three_unique_pokemon(self, api_url):
         """FR-1/FR-5: Matchup has exactly 3 unique Pokemon."""
         resp = httpx.get(f"{api_url}/api/matchup/today")

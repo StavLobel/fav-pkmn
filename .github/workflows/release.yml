@@ -6,33 +6,24 @@ on:
       - "v*"
 
 jobs:
-  test:
-    name: Pre-release Test Suite
+  test-frontend:
+    name: Frontend Widget Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build all images
-        run: docker compose build
-
-      - name: Run frontend widget tests
+      - name: Run Flutter widget tests
         run: docker compose --profile test run --rm test-unit
 
-      - name: Start services for E2E
-        run: |
-          docker compose up -d db api app
-          sleep 15
-
-      - name: Run full E2E test suite
-        run: docker compose --profile test run --rm test-e2e pytest -v
-
-      - name: Teardown
-        if: always()
-        run: docker compose down -v
+  test-regression:
+    name: Pre-release Regression
+    uses: ./.github/workflows/test-suites.yml
+    with:
+      run-regression: true
 
   create-release:
     name: Create GitHub Release
-    needs: test
+    needs: [test-frontend, test-regression]
     runs-on: ubuntu-latest
     permissions:
       contents: write
