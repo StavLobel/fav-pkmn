@@ -1,8 +1,8 @@
-# Daily Starter - Software Requirements Specification (SRS)
+# PokePick - Software Requirements Specification (SRS)
 
 ## 1. System Overview
 
-Daily Starter is a web application that presents users with a daily Pokémon voting challenge.
+PokePick is a web application that presents users with a daily Pokémon voting challenge.
 
 Each day, the system selects three Pokémon at random and presents them to all users as a shared daily matchup. Users vote for their favorite Pokémon among the three options. After voting, the user immediately sees the aggregated results for that day's matchup.
 
@@ -349,7 +349,7 @@ Pokémon data retrieved from PokeAPI remains stable.
 
 ## 8.1 First Visit - Before Voting
 
-1. The user opens the Daily Starter application.
+1. The user opens the PokePick application.
 2. The system checks for the presence of an anonymous voter token cookie.
 3. If the cookie does not exist, the system generates a new anonymous voter token and stores it in a secure cookie.
 4. The system retrieves the daily matchup for the current date.

@@ -13,7 +13,7 @@ class TestHistoryNavigationE2E:
 
     def test_navigate_to_history_screen(self, clean_page, base_url):
         """FR-34: Clicking the history button navigates to the history screen."""
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
 
         clean_page.goto(f"{base_url}/#/history")
         clean_page.wait_for_selector("text=History", timeout=15000)
@@ -23,15 +23,15 @@ class TestHistoryNavigationE2E:
 
     def test_history_screen_has_back_navigation(self, clean_page, base_url):
         """FR-34: The history screen provides a way to navigate back."""
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
 
         clean_page.goto(f"{base_url}/#/history")
         clean_page.wait_for_selector("text=History", timeout=15000)
 
         clean_page.go_back()
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
 
-        title = clean_page.query_selector("text=Daily Starter")
+        title = clean_page.query_selector("text=PokePick")
         assert title is not None, "Should navigate back to the daily challenge screen"
 
 
@@ -73,15 +73,20 @@ class TestHistoryDisplayE2E:
             )
 
     def test_history_entries_show_dates(self, seeded_page, base_url):
-        """FR-33: History entries display the matchup date."""
+        """FR-33: History entries display the matchup date in readable format."""
         seeded_page.goto(f"{base_url}/#/history")
         seeded_page.wait_for_selector("text=History", timeout=15000)
         seeded_page.wait_for_timeout(3000)
 
         content = seeded_page.content()
         if "No history yet" not in content:
-            assert re.search(r"\d{4}-\d{2}-\d{2}", content), (
-                "History entries should display dates in YYYY-MM-DD format"
+            has_readable_date = (
+                "Today" in content
+                or "Yesterday" in content
+                or re.search(r"[A-Z][a-z]{2} \d{1,2}, \d{4}", content)
+            )
+            assert has_readable_date, (
+                "History entries should display dates in readable format"
             )
 
     def test_history_entries_show_vote_counts(self, seeded_page, base_url):
