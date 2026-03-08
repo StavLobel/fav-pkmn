@@ -1,9 +1,0 @@
-node_modules
-dist
-.git
-.gitignore
-*.md
-tests/__pycache__
-test-results
-.cursor
-docs
