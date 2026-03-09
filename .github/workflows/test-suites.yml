@@ -117,7 +117,7 @@ jobs:
             sleep 1
           done
           for i in $(seq 1 60); do
-            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            curl -sf http://localhost:8080 > /dev/null 2>&1 && echo "Frontend ready" && break
             sleep 1
           done
 
@@ -179,7 +179,7 @@ jobs:
             sleep 1
           done
           for i in $(seq 1 60); do
-            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            curl -sf http://localhost:8080 > /dev/null 2>&1 && echo "Frontend ready" && break
             sleep 1
           done
 
@@ -241,7 +241,7 @@ jobs:
             sleep 1
           done
           for i in $(seq 1 60); do
-            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            curl -sf http://localhost:8080 > /dev/null 2>&1 && echo "Frontend ready" && break
             sleep 1
           done
 
@@ -307,7 +307,7 @@ jobs:
             sleep 1
           done
           for i in $(seq 1 60); do
-            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            curl -sf http://localhost:8080 > /dev/null 2>&1 && echo "Frontend ready" && break
             sleep 1
           done
 
