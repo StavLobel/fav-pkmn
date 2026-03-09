@@ -119,7 +119,7 @@ jobs:
           done
 
       - name: Run sanity tests
-        run: docker compose --profile test run --rm test-e2e pytest -m sanity -v
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m sanity -v
 
       - name: Upload Playwright traces
         if: failure()
@@ -181,7 +181,7 @@ jobs:
           done
 
       - name: Run E2E tests
-        run: docker compose --profile test run --rm test-e2e pytest -m e2e -v
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m e2e -v
 
       - name: Upload Playwright traces
         if: failure()
@@ -243,7 +243,7 @@ jobs:
           done
 
       - name: Run regression tests
-        run: docker compose --profile test run --rm test-e2e pytest -m regression -v --cov --cov-report=term-missing
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m regression -v --cov --cov-report=term-missing
 
       - name: Upload Playwright traces
         if: failure()
@@ -309,7 +309,7 @@ jobs:
           done
 
       - name: Run matchup tests
-        run: docker compose --profile test run --rm test-e2e pytest -m matchup -v
+        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m matchup -v
 
       - name: Upload Playwright traces
         if: failure()
