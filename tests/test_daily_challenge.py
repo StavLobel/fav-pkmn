@@ -19,7 +19,9 @@ class TestDailyChallengeDisplay:
         clean_page.wait_for_selector("img", timeout=15000)
 
         images = clean_page.query_selector_all("img")
-        assert len(images) >= 3, f"Expected at least 3 Pokemon sprites, got {len(images)}"
+        assert len(images) >= 3, (
+            f"Expected at least 3 Pokemon sprites, got {len(images)}"
+        )
 
     def test_shows_voting_prompt(self, clean_page):
         """FR-8: System displays the daily matchup with a prompt to vote."""
@@ -53,8 +55,12 @@ class TestDailyChallengeDisplay:
         clean_page.wait_for_selector("img", timeout=15000)
 
         images = clean_page.query_selector_all("img")
-        sprites = [img for img in images if "pokeapi" in (img.get_attribute("src") or "")]
-        assert len(sprites) >= 3, f"Expected 3 PokeAPI sprite images, got {len(sprites)}"
+        sprites = [
+            img for img in images if "pokeapi" in (img.get_attribute("src") or "")
+        ]
+        assert len(sprites) >= 3, (
+            f"Expected 3 PokeAPI sprite images, got {len(sprites)}"
+        )
 
     def test_type_chips_are_displayed(self, clean_page, api_url):
         """FR-9: Pokemon type badges are visible on the cards."""
@@ -87,9 +93,10 @@ class TestDailyChallengeDisplay:
         history_btn = clean_page.query_selector("[aria-label='History']")
         if history_btn is None:
             history_btn = clean_page.query_selector("text=History")
-        assert history_btn is not None or clean_page.query_selector(
-            "button >> text=history"
-        ) is not None, "History button should be accessible in the app bar"
+        assert (
+            history_btn is not None
+            or clean_page.query_selector("button >> text=history") is not None
+        ), "History button should be accessible in the app bar"
 
 
 @pytest.mark.regression

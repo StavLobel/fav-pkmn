@@ -1,7 +1,7 @@
 import re
 
-import pytest
 import httpx
+import pytest
 
 
 @pytest.mark.regression
@@ -68,9 +68,7 @@ class TestHistoryDisplayE2E:
         content = seeded_page.content()
         if "No history yet" not in content:
             images = seeded_page.query_selector_all("img")
-            assert len(images) >= 3, (
-                "History entries should show Pokemon sprite images"
-            )
+            assert len(images) >= 3, "History entries should show Pokemon sprite images"
 
     def test_history_entries_show_dates(self, seeded_page, base_url):
         """FR-33: History entries display the matchup date in readable format."""

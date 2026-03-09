@@ -1,7 +1,7 @@
 import re
 
-import pytest
 import httpx
+import pytest
 
 
 @pytest.mark.regression

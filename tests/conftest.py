@@ -48,11 +48,15 @@ def seeded_page(browser, base_url, api_url):
     voter_token = resp.cookies.get("voter_token")
 
     if voter_token:
-        context.add_cookies([{
-            "name": "voter_token",
-            "value": voter_token,
-            "url": base_url,
-        }])
+        context.add_cookies(
+            [
+                {
+                    "name": "voter_token",
+                    "value": voter_token,
+                    "url": base_url,
+                }
+            ]
+        )
         httpx.post(
             f"{api_url}/api/vote",
             json={"matchup_id": matchup_id, "pokemon_id": pokemon_id},

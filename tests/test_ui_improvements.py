@@ -3,7 +3,6 @@ import re
 import pytest
 
 
-
 @pytest.mark.regression
 @pytest.mark.e2e
 @pytest.mark.results

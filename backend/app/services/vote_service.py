@@ -29,16 +29,16 @@ async def submit_vote(
         await db.commit()
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status_code=409, detail="Already voted for this matchup")
+        raise HTTPException(
+            status_code=409, detail="Already voted for this matchup"
+        ) from None
 
     pokemon_list = await _get_matchup_pokemon(db, matchup)
     return await get_results(db, matchup, pokemon_list)
 
 
 async def _get_matchup(db: AsyncSession, matchup_id: int) -> DailyMatchup:
-    result = await db.execute(
-        select(DailyMatchup).where(DailyMatchup.id == matchup_id)
-    )
+    result = await db.execute(select(DailyMatchup).where(DailyMatchup.id == matchup_id))
     matchup = result.scalar_one_or_none()
     if not matchup:
         raise HTTPException(status_code=404, detail="Matchup not found")
