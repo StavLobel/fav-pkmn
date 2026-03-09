@@ -22,7 +22,7 @@ async def submit_vote(
     try:
         token = uuid.UUID(voter_token)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid voter token")
+        raise HTTPException(status_code=400, detail="Invalid voter token") from None
 
     results = await vote_service.submit_vote(
         db, vote.matchup_id, vote.pokemon_id, token

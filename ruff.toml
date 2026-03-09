@@ -15,6 +15,7 @@ select = [
 ]
 ignore = [
     "E501", # line too long (handled by formatter)
+    "B008", # function call in default arg (required by FastAPI's Depends/Query/Cookie)
 ]
 
 [lint.isort]

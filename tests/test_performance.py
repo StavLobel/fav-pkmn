@@ -1,7 +1,7 @@
 import time
 
-import pytest
 import httpx
+import pytest
 
 
 @pytest.mark.nfr_perf

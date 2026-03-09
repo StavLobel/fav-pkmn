@@ -1,7 +1,7 @@
 import re
 
-import pytest
 import httpx
+import pytest
 
 
 @pytest.mark.regression
@@ -19,7 +19,7 @@ class TestVotingFlowE2E:
         first_name = resp.json()["pokemon"][0]["name"]
         capitalized = first_name[0].upper() + first_name[1:]
 
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
         clean_page.wait_for_selector("img", timeout=15000)
 
         card = clean_page.query_selector(f"text={capitalized}")
@@ -34,7 +34,7 @@ class TestVotingFlowE2E:
         first_name = resp.json()["pokemon"][0]["name"]
         capitalized = first_name[0].upper() + first_name[1:]
 
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
         clean_page.wait_for_selector("img", timeout=15000)
         clean_page.click(f"text={capitalized}")
 
@@ -48,7 +48,7 @@ class TestVotingFlowE2E:
         first_name = resp.json()["pokemon"][0]["name"]
         capitalized = first_name[0].upper() + first_name[1:]
 
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
         clean_page.wait_for_selector("img", timeout=15000)
         clean_page.click(f"text={capitalized}")
 
@@ -62,7 +62,7 @@ class TestVotingFlowE2E:
         first_name = resp.json()["pokemon"][0]["name"]
         capitalized = first_name[0].upper() + first_name[1:]
 
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
         clean_page.wait_for_selector("img", timeout=15000)
         clean_page.click(f"text={capitalized}")
 
@@ -85,13 +85,13 @@ class TestDuplicateVoteE2E:
         first_name = resp.json()["pokemon"][0]["name"]
         capitalized = first_name[0].upper() + first_name[1:]
 
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
         clean_page.wait_for_selector("img", timeout=15000)
         clean_page.click(f"text={capitalized}")
         clean_page.wait_for_selector("text=Today's Results", timeout=15000)
 
         clean_page.reload()
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
         clean_page.wait_for_timeout(3000)
 
         results = clean_page.query_selector("text=Today's Results")

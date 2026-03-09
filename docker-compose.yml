@@ -40,6 +40,12 @@ services:
       - ./frontend/pubspec.yaml:/app/pubspec.yaml
     depends_on:
       - api
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5173 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 30s
 
   test-unit:
     build:
@@ -59,8 +65,10 @@ services:
       BASE_URL: http://app:5173
       API_URL: http://api:8000
     depends_on:
-      - app
-      - api
+      app:
+        condition: service_healthy
+      api:
+        condition: service_started
     profiles:
       - test
 

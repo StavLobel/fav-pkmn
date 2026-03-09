@@ -1,6 +1,6 @@
 {
-  "name": "Daily Starter",
-  "short_name": "DailyStarter",
+  "name": "PokePick",
+  "short_name": "PokePick",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#1a1a2e",

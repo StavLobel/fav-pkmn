@@ -18,6 +18,7 @@ class MatchupProvider extends ChangeNotifier {
   String? _errorMessage;
   int? _userPick;
   bool _isSubmitting = false;
+  bool _justVoted = false;
 
   Matchup? get matchup => _matchup;
   VoteResults? get results => _results;
@@ -26,6 +27,7 @@ class MatchupProvider extends ChangeNotifier {
   int? get userPick => _userPick;
   bool get hasVoted => _matchup?.hasVoted ?? false;
   bool get isSubmitting => _isSubmitting;
+  bool get justVoted => _justVoted;
 
   Future<void> loadTodayMatchup() async {
     _state = LoadingState.loading;
@@ -41,7 +43,11 @@ class MatchupProvider extends ChangeNotifier {
       _state = LoadingState.loaded;
     } on ApiException catch (e) {
       _state = LoadingState.error;
-      _errorMessage = 'Failed to load matchup: ${e.statusCode}';
+      _errorMessage = switch (e.statusCode) {
+        404 => 'No matchup found for today. Check back soon!',
+        503 => 'We\'re updating. Try again in a moment.',
+        _ => 'Something went wrong. Please try again.',
+      };
     } catch (e) {
       _state = LoadingState.error;
       _errorMessage = 'Failed to load matchup. Check your connection.';
@@ -60,6 +66,7 @@ class MatchupProvider extends ChangeNotifier {
     try {
       _results = await _api.submitVote(_matchup!.id, pokemonId);
       _userPick = pokemonId;
+      _justVoted = true;
       _matchup = Matchup(
         id: _matchup!.id,
         matchDate: _matchup!.matchDate,
