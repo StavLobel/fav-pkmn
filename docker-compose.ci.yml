@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: ./frontend
+      target: prod
+    ports:
+      - "5173:80"
+    volumes: []
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  test-e2e:
+    environment:
+      BASE_URL: http://app:80

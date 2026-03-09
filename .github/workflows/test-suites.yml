@@ -1,5 +1,8 @@
 name: Test Suites
 
+env:
+  DC: docker compose -f docker-compose.yml -f docker-compose.ci.yml
+
 on:
   workflow_call:
     inputs:
@@ -105,7 +108,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api app
+        run: $DC up -d db api app
 
       - name: Wait for services
         run: |
@@ -119,7 +122,7 @@ jobs:
           done
 
       - name: Run sanity tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m sanity -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m sanity -v
 
       - name: Upload Playwright traces
         if: failure()
@@ -131,7 +134,7 @@ jobs:
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   api:
     name: "Suite: API"
@@ -142,7 +145,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -152,11 +155,11 @@ jobs:
           done
 
       - name: Run API tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m api -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m api -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   e2e:
     name: "Suite: E2E"
@@ -167,7 +170,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api app
+        run: $DC up -d db api app
 
       - name: Wait for services
         run: |
@@ -181,7 +184,7 @@ jobs:
           done
 
       - name: Run E2E tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m e2e -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m e2e -v
 
       - name: Upload Playwright traces
         if: failure()
@@ -193,7 +196,7 @@ jobs:
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   security:
     name: "Suite: Security"
@@ -204,7 +207,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -214,11 +217,11 @@ jobs:
           done
 
       - name: Run security tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m security -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m security -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   regression:
     name: "Suite: Regression"
@@ -229,7 +232,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api app
+        run: $DC up -d db api app
 
       - name: Wait for services
         run: |
@@ -243,7 +246,7 @@ jobs:
           done
 
       - name: Run regression tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m regression -v --cov --cov-report=term-missing
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m regression -v --cov --cov-report=term-missing
 
       - name: Upload Playwright traces
         if: failure()
@@ -255,7 +258,7 @@ jobs:
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   performance:
     name: "Suite: Performance"
@@ -266,7 +269,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -276,11 +279,11 @@ jobs:
           done
 
       - name: Run performance tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m nfr_perf -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m nfr_perf -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   # ──────────────────────────────────────────────────────
   #  Feature Jobs
@@ -295,7 +298,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api app
+        run: $DC up -d db api app
 
       - name: Wait for services
         run: |
@@ -309,7 +312,7 @@ jobs:
           done
 
       - name: Run matchup tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m matchup -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m matchup -v
 
       - name: Upload Playwright traces
         if: failure()
@@ -321,7 +324,7 @@ jobs:
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   voting:
     name: "Feature: Voting"
@@ -332,7 +335,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -342,11 +345,11 @@ jobs:
           done
 
       - name: Run voting tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m voting -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m voting -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   identity:
     name: "Feature: Identity"
@@ -357,7 +360,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -367,11 +370,11 @@ jobs:
           done
 
       - name: Run identity tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m identity -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m identity -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   results:
     name: "Feature: Results"
@@ -382,7 +385,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -392,11 +395,11 @@ jobs:
           done
 
       - name: Run results tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m results -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m results -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   history:
     name: "Feature: History"
@@ -407,7 +410,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -417,11 +420,11 @@ jobs:
           done
 
       - name: Run history tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m history -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m history -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   daily-reset:
     name: "Feature: Daily Reset"
@@ -432,7 +435,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -442,8 +445,8 @@ jobs:
           done
 
       - name: Run daily reset tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m daily_reset -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m daily_reset -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
