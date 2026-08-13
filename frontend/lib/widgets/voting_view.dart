@@ -18,10 +18,13 @@ class VotingView extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          'Who\'s your favorite?',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+        Semantics(
+          header: true,
+          child: Text(
+            'Who\'s your favorite?',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -34,35 +37,40 @@ class VotingView extends StatelessWidget {
         const SizedBox(height: 32),
         LayoutBuilder(
           builder: (context, constraints) {
-            if (constraints.maxWidth > 700) {
+            final isWide = constraints.maxWidth > 700;
+
+            final cards = pokemon
+                .map((p) => PokemonCard(
+                      pokemon: p,
+                      enabled: !provider.isSubmitting,
+                      onTap: () => provider.submitVote(p.pokemonId),
+                    ))
+                .toList();
+
+            if (isWide) {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: pokemon
-                    .map((p) => Expanded(
+                children: cards
+                    .map((card) => Expanded(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: PokemonCard(
-                              pokemon: p,
-                              enabled: !provider.isSubmitting,
-                              onTap: () => provider.submitVote(p.pokemonId),
-                            ),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8),
+                            child: card,
                           ),
                         ))
                     .toList(),
               );
             }
-            return Column(
-              children: pokemon
-                  .map((p) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: PokemonCard(
-                            pokemon: p,
-                            enabled: !provider.isSubmitting,
-                            onTap: () => provider.submitVote(p.pokemonId),
-                          ),
-                        ),
+            return Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 16,
+              runSpacing: 8,
+              children: cards
+                  .map((card) => SizedBox(
+                        width: constraints.maxWidth > 500
+                            ? (constraints.maxWidth - 64) / 2
+                            : double.infinity,
+                        child: card,
                       ))
                   .toList(),
             );

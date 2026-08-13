@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
-app = FastAPI(title="Daily Starter API", lifespan=lifespan)
+app = FastAPI(title="PokePick API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

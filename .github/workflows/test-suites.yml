@@ -1,5 +1,8 @@
 name: Test Suites
 
+env:
+  DC: docker compose -f docker-compose.yml -f docker-compose.ci.yml
+
 on:
   workflow_call:
     inputs:
@@ -105,7 +108,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api app
+        run: $DC up -d db api app
 
       - name: Wait for services
         run: |
@@ -114,12 +117,39 @@ jobs:
             sleep 1
           done
           for i in $(seq 1 60); do
-            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            curl -sf http://localhost:8080 > /dev/null 2>&1 && echo "Frontend ready" && break
             sleep 1
           done
 
+      - name: Diagnose connectivity
+        run: |
+          echo "=== H2/H5: Container status ==="
+          $DC ps
+          echo "=== H4: Nginx listen config ==="
+          $DC exec app cat /etc/nginx/conf.d/default.conf || echo "NO_DEFAULT_CONF"
+          $DC exec app nginx -T 2>&1 | grep -E "listen|server_name" || echo "NGINX_T_FAIL"
+          echo "=== H4: Nginx accessible from within container ==="
+          $DC exec app wget -qO- http://localhost:80 | head -c 200 || echo "NGINX_LOCALHOST_FAIL"
+          echo ""
+          echo "=== H1/H3: DNS + HTTP from test-e2e container ==="
+          $DC --profile test run --rm --no-deps test-e2e python3 -c "
+          import socket, urllib.request, sys
+          print('H1 DNS:', socket.getaddrinfo('app', 80, socket.AF_INET))
+          print('H3 API DNS:', socket.getaddrinfo('api', 8000, socket.AF_INET))
+          try:
+              resp = urllib.request.urlopen('http://app:80', timeout=5)
+              print('H2 HTTP app:80 OK, status:', resp.status)
+          except Exception as e:
+              print('H2 HTTP app:80 FAIL:', e)
+          try:
+              resp = urllib.request.urlopen('http://api:8000/api/health', timeout=5)
+              print('H3 HTTP api:8000 OK, status:', resp.status)
+          except Exception as e:
+              print('H3 HTTP api:8000 FAIL:', e)
+          "
+
       - name: Run sanity tests
-        run: docker compose --profile test run --rm test-e2e pytest -m sanity -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m sanity -v
 
       - name: Upload Playwright traces
         if: failure()
@@ -131,7 +161,7 @@ jobs:
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   api:
     name: "Suite: API"
@@ -142,7 +172,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -152,11 +182,11 @@ jobs:
           done
 
       - name: Run API tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m api -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m api -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   e2e:
     name: "Suite: E2E"
@@ -167,7 +197,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api app
+        run: $DC up -d db api app
 
       - name: Wait for services
         run: |
@@ -176,12 +206,12 @@ jobs:
             sleep 1
           done
           for i in $(seq 1 60); do
-            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            curl -sf http://localhost:8080 > /dev/null 2>&1 && echo "Frontend ready" && break
             sleep 1
           done
 
       - name: Run E2E tests
-        run: docker compose --profile test run --rm test-e2e pytest -m e2e -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m e2e -v
 
       - name: Upload Playwright traces
         if: failure()
@@ -193,7 +223,7 @@ jobs:
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   security:
     name: "Suite: Security"
@@ -204,7 +234,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -214,11 +244,11 @@ jobs:
           done
 
       - name: Run security tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m security -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m security -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   regression:
     name: "Suite: Regression"
@@ -229,7 +259,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api app
+        run: $DC up -d db api app
 
       - name: Wait for services
         run: |
@@ -238,12 +268,12 @@ jobs:
             sleep 1
           done
           for i in $(seq 1 60); do
-            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            curl -sf http://localhost:8080 > /dev/null 2>&1 && echo "Frontend ready" && break
             sleep 1
           done
 
       - name: Run regression tests
-        run: docker compose --profile test run --rm test-e2e pytest -m regression -v --cov --cov-report=term-missing
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m regression -v --cov --cov-report=term-missing
 
       - name: Upload Playwright traces
         if: failure()
@@ -255,7 +285,7 @@ jobs:
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   performance:
     name: "Suite: Performance"
@@ -266,7 +296,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -276,11 +306,11 @@ jobs:
           done
 
       - name: Run performance tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m nfr_perf -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m nfr_perf -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   # ──────────────────────────────────────────────────────
   #  Feature Jobs
@@ -295,7 +325,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api app
+        run: $DC up -d db api app
 
       - name: Wait for services
         run: |
@@ -304,12 +334,12 @@ jobs:
             sleep 1
           done
           for i in $(seq 1 60); do
-            curl -sf http://localhost:5173 > /dev/null 2>&1 && echo "Frontend ready" && break
+            curl -sf http://localhost:8080 > /dev/null 2>&1 && echo "Frontend ready" && break
             sleep 1
           done
 
       - name: Run matchup tests
-        run: docker compose --profile test run --rm test-e2e pytest -m matchup -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m matchup -v
 
       - name: Upload Playwright traces
         if: failure()
@@ -321,7 +351,7 @@ jobs:
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   voting:
     name: "Feature: Voting"
@@ -332,7 +362,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -342,11 +372,11 @@ jobs:
           done
 
       - name: Run voting tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m voting -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m voting -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   identity:
     name: "Feature: Identity"
@@ -357,7 +387,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -367,11 +397,11 @@ jobs:
           done
 
       - name: Run identity tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m identity -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m identity -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   results:
     name: "Feature: Results"
@@ -382,7 +412,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -392,11 +422,11 @@ jobs:
           done
 
       - name: Run results tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m results -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m results -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   history:
     name: "Feature: History"
@@ -407,7 +437,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -417,11 +447,11 @@ jobs:
           done
 
       - name: Run history tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m history -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m history -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v
 
   daily-reset:
     name: "Feature: Daily Reset"
@@ -432,7 +462,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose up -d db api
+        run: $DC up -d db api
 
       - name: Wait for API
         run: |
@@ -442,8 +472,8 @@ jobs:
           done
 
       - name: Run daily reset tests
-        run: docker compose --profile test run --rm --no-deps test-e2e pytest -m daily_reset -v
+        run: $DC --profile test run --rm --no-deps test-e2e pytest -m daily_reset -v
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: $DC down -v

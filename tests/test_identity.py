@@ -1,5 +1,5 @@
-import pytest
 import httpx
+import pytest
 
 
 @pytest.mark.regression
@@ -12,7 +12,7 @@ class TestBrowserTokenE2E:
 
     def test_voter_token_cookie_set_on_page_load(self, clean_page, base_url):
         """FR-19/FR-20: Loading the page sets a voter_token cookie in the browser."""
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
         clean_page.wait_for_selector("img", timeout=15000)
 
         cookies = clean_page.context.cookies()
@@ -23,7 +23,7 @@ class TestBrowserTokenE2E:
 
     def test_voter_token_persists_across_reload(self, clean_page, base_url):
         """FR-20: The voter_token cookie persists across page reloads."""
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
         clean_page.wait_for_selector("img", timeout=15000)
 
         cookies_before = clean_page.context.cookies()
@@ -33,7 +33,7 @@ class TestBrowserTokenE2E:
         assert token_before is not None
 
         clean_page.reload()
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
 
         cookies_after = clean_page.context.cookies()
         token_after = next(
@@ -47,13 +47,11 @@ class TestBrowserTokenE2E:
         """FR-19: The voter token is a UUID."""
         import re
 
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
         clean_page.wait_for_selector("img", timeout=15000)
 
         cookies = clean_page.context.cookies()
-        token = next(
-            (c["value"] for c in cookies if c["name"] == "voter_token"), None
-        )
+        token = next((c["value"] for c in cookies if c["name"] == "voter_token"), None)
         assert token is not None
         assert re.match(
             r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
@@ -70,7 +68,7 @@ class TestBrowserTokenUsedInVoteE2E:
 
     def test_vote_uses_browser_cookie(self, clean_page, api_url):
         """FR-21: Voting through the UI uses the browser's voter_token cookie."""
-        clean_page.wait_for_selector("text=Daily Starter", timeout=15000)
+        clean_page.wait_for_selector("text=PokePick", timeout=15000)
         clean_page.wait_for_selector("img", timeout=15000)
 
         cookies_before = clean_page.context.cookies()
@@ -90,9 +88,7 @@ class TestBrowserTokenUsedInVoteE2E:
         token_after = next(
             (c["value"] for c in cookies_after if c["name"] == "voter_token"), None
         )
-        assert token_after is not None, (
-            "voter_token should still exist after voting"
-        )
+        assert token_after is not None, "voter_token should still exist after voting"
 
 
 @pytest.mark.regression
@@ -122,7 +118,9 @@ class TestAnonymousIdentity:
             cookies={"voter_token": token},
         )
         new_token = second.cookies.get("voter_token")
-        assert new_token is None, "Should not set a new cookie when token already exists"
+        assert new_token is None, (
+            "Should not set a new cookie when token already exists"
+        )
 
 
 @pytest.mark.regression

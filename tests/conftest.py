@@ -1,7 +1,20 @@
 import os
+import time
 
 import pytest
 from playwright.sync_api import sync_playwright
+
+
+def _goto_with_retry(page, url, retries=5, delay=3):
+    """Navigate to url, retrying on connection errors (e.g. app still booting)."""
+    for attempt in range(retries):
+        try:
+            page.goto(url, wait_until="load", timeout=30_000)
+            return
+        except Exception:
+            if attempt == retries - 1:
+                raise
+            time.sleep(delay)
 
 
 @pytest.fixture(scope="session")
@@ -27,7 +40,7 @@ def clean_page(browser, base_url):
     context = browser.new_context()
     context.clear_cookies()
     page = context.new_page()
-    page.goto(base_url)
+    _goto_with_retry(page, base_url)
     yield page
     context.close()
 
@@ -48,17 +61,21 @@ def seeded_page(browser, base_url, api_url):
     voter_token = resp.cookies.get("voter_token")
 
     if voter_token:
-        context.add_cookies([{
-            "name": "voter_token",
-            "value": voter_token,
-            "url": base_url,
-        }])
+        context.add_cookies(
+            [
+                {
+                    "name": "voter_token",
+                    "value": voter_token,
+                    "url": base_url,
+                }
+            ]
+        )
         httpx.post(
             f"{api_url}/api/vote",
             json={"matchup_id": matchup_id, "pokemon_id": pokemon_id},
             cookies={"voter_token": voter_token},
         )
 
-    page.goto(base_url)
+    _goto_with_retry(page, base_url)
     yield page
     context.close()

@@ -1,5 +1,5 @@
 ---
-description: TDD workflow for Daily Starter
+description: TDD workflow for PokePick
 globs:
 alwaysApply: true
 ---

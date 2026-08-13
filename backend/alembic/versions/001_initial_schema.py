@@ -5,17 +5,17 @@ Revises:
 Create Date: 2026-03-08
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
-from alembic import op
-
 revision: str = "001"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -26,7 +26,9 @@ def upgrade() -> None:
         sa.Column("name", sa.String(100), nullable=False),
         sa.Column("sprite_url", sa.String(500), nullable=False),
         sa.Column("types", postgresql.JSONB(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now()
+        ),
     )
 
     op.create_table(
@@ -51,7 +53,9 @@ def upgrade() -> None:
             sa.ForeignKey("pokemon_cache.pokemon_id"),
             nullable=False,
         ),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now()
+        ),
         sa.CheckConstraint(
             "pokemon_1_id != pokemon_2_id AND pokemon_2_id != pokemon_3_id AND pokemon_1_id != pokemon_3_id",
             name="ck_unique_pokemon",
@@ -68,8 +72,12 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("pokemon_id", sa.Integer(), nullable=False),
-        sa.Column("voter_token", postgresql.UUID(as_uuid=True), nullable=False, index=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column(
+            "voter_token", postgresql.UUID(as_uuid=True), nullable=False, index=True
+        ),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now()
+        ),
         sa.UniqueConstraint("matchup_id", "voter_token", name="uq_one_vote_per_token"),
     )
 

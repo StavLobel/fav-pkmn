@@ -1,4 +1,4 @@
-# Daily Starter -- UI/UX Review
+# PokePick -- UI/UX Review
 
 ## Executive Summary
 

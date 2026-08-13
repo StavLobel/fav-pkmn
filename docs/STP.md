@@ -1,4 +1,4 @@
-# Daily Starter - Software Test Procedure (STP)
+# PokePick - Software Test Procedure (STP)
 
 ## Test Layers
 

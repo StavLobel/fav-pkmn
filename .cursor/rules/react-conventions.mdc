@@ -1,5 +1,5 @@
 ---
-description: Flutter and Dart conventions for the Daily Starter app
+description: Flutter and Dart conventions for the PokePick app
 globs: frontend/lib/**/*.dart
 alwaysApply: false
 ---

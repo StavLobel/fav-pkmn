@@ -49,6 +49,9 @@ jobs:
       - name: Build dev images
         run: docker compose build
 
+      - name: Build CI images
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml build
+
       - name: Build prod images
         run: docker compose -f docker-compose.prod.yml build
 

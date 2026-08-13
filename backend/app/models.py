@@ -23,7 +23,9 @@ class PokemonCache(Base):
     __tablename__ = "pokemon_cache"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    pokemon_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False, index=True)
+    pokemon_id: Mapped[int] = mapped_column(
+        Integer, unique=True, nullable=False, index=True
+    )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     sprite_url: Mapped[str] = mapped_column(String(500), nullable=False)
     types: Mapped[dict] = mapped_column(JSONB, nullable=False)
@@ -42,10 +44,18 @@ class DailyMatchup(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    match_date: Mapped[datetime.date] = mapped_column(Date, unique=True, nullable=False, index=True)
-    pokemon_1_id: Mapped[int] = mapped_column(Integer, ForeignKey("pokemon_cache.pokemon_id"), nullable=False)
-    pokemon_2_id: Mapped[int] = mapped_column(Integer, ForeignKey("pokemon_cache.pokemon_id"), nullable=False)
-    pokemon_3_id: Mapped[int] = mapped_column(Integer, ForeignKey("pokemon_cache.pokemon_id"), nullable=False)
+    match_date: Mapped[datetime.date] = mapped_column(
+        Date, unique=True, nullable=False, index=True
+    )
+    pokemon_1_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("pokemon_cache.pokemon_id"), nullable=False
+    )
+    pokemon_2_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("pokemon_cache.pokemon_id"), nullable=False
+    )
+    pokemon_3_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("pokemon_cache.pokemon_id"), nullable=False
+    )
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -63,9 +73,13 @@ class Vote(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    matchup_id: Mapped[int] = mapped_column(Integer, ForeignKey("daily_matchups.id"), nullable=False)
+    matchup_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("daily_matchups.id"), nullable=False
+    )
     pokemon_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    voter_token: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    voter_token: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False, index=True
+    )
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

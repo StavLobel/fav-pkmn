@@ -1,5 +1,5 @@
 ---
-description: pytest and Playwright E2E test conventions for Daily Starter
+description: pytest and Playwright E2E test conventions for PokePick
 globs: tests/**/*.py
 alwaysApply: false
 ---

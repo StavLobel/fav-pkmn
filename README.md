@@ -1,4 +1,4 @@
-# Daily Starter
+# PokePick
 
 **A daily Pokemon voting challenge for the web.** Pick your favorite from three random Pokemon each day -- one vote, one chance, every day.
 

@@ -1,4 +1,4 @@
-# Contributing to Daily Starter
+# Contributing to PokePick
 
 Thank you for your interest in contributing. This document covers the development workflow, conventions, and requirements for submitting changes.
 

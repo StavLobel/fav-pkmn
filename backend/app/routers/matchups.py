@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
-from app.models import DailyMatchup, PokemonCache, Vote
+from app.models import DailyMatchup, Vote
 from app.schemas import HistoryEntry, MatchupOut, PokemonOut
 from app.services import matchup_service, vote_service
 

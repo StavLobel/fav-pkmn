@@ -5,13 +5,14 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.config import settings
 from app.models import DailyMatchup, PokemonCache, Vote
 from app.services.pokeapi_service import get_multiple_pokemon
 
 
 def _today() -> datetime.date:
-    return datetime.datetime.now(datetime.timezone.utc).date()
+    return datetime.datetime.now(datetime.UTC).date()
 
 
 async def get_or_create_today(
@@ -34,9 +35,7 @@ async def _get_by_date(db: AsyncSession, date: datetime.date) -> DailyMatchup | 
     return result.scalar_one_or_none()
 
 
-async def _create_matchup(
-    db: AsyncSession, date: datetime.date
-) -> DailyMatchup:
+async def _create_matchup(db: AsyncSession, date: datetime.date) -> DailyMatchup:
     pokemon_ids = random.sample(range(1, settings.max_pokemon_id + 1), 3)
     await get_multiple_pokemon(db, pokemon_ids)
 
